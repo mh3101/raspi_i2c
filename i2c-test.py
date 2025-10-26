@@ -1,19 +1,33 @@
 #!/usr/bin/python
 
 import smbus
+import time
 
 bus = smbus.SMBus(1)    # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
 
 DEVICE_ADDRESS = 0x20      #7 bit address (will be left shifted to add the read write bit)
 DEVICE_REG_MODE1 = 0x00
-DEVICE_REG_LEDOUT0 = 0x1d
+
+status = 1
 
 #Write a single register
-bus.write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x80)
+bus.write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x00)
 
-#Write an array of registers
-ledout_values = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
-bus.write_i2c_block_data(DEVICE_ADDRESS, DEVICE_REG_LEDOUT0, ledout_values)
+# --- Hauptprogramm ---
+try:
+    while True:
+        if status:
+            bus.write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x00)
+            print("Relais aus")
+        else:
+            bus.write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x255)
+            print("Relais ein")
+                
+        status ^= 1   
+        time.sleep(1)
 
-#Write multiple bytes without creating an array
-bus.write_block_data(DEVICE_ADDRESS, 0x01, [0x11, 0x23, 0x34, 0x14])
+except KeyboardInterrupt:
+    print("\nBeendet vom Benutzer.")
+    # --- Aufräumen ---
+    bus.write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x00)
+    print("GPIO freigegeben, Script beendet.")
