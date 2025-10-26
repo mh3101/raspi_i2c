@@ -1,21 +1,19 @@
-# Bibliotheken laden
-from machine import Pin, I2C
+#!/usr/bin/python
 
-# Initialisierung I2C-Pins
-i2c_sda = Pin(20)
-i2c_scl = Pin(21)
+import smbus
 
-# Initialisierung I2C
-i2c = I2C(0,sda=i2c_sda,scl=i2c_scl,freq=100000)
+bus = smbus.SMBus(1)    # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
 
-# I2C-Bus-Scan
-print('Scan I2C Bus...')
-devices = i2c.scan()
+DEVICE_ADDRESS = 0x20      #7 bit address (will be left shifted to add the read write bit)
+DEVICE_REG_MODE1 = 0x00
+DEVICE_REG_LEDOUT0 = 0x1d
 
-# Scanergebnis ausgeben
-if len(devices) == 0:
-    print('Kein I2C-Gerät gefunden!')
-else:
-    print('I2C-Geräte gefunden:', len(devices))
-    for device in devices:
-        print('Dezimale Adresse:', device, '| Hexadezimale Adresse:', hex(device))
+#Write a single register
+bus.write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x80)
+
+#Write an array of registers
+ledout_values = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+bus.write_i2c_block_data(DEVICE_ADDRESS, DEVICE_REG_LEDOUT0, ledout_values)
+
+#Write multiple bytes without creating an array
+bus.write_block_data(DEVICE_ADDRESS, 0x01, [0x11, 0x23, 0x34, 0x14])
