@@ -8,14 +8,16 @@ DEVICE_REG_MODE1 = 0x00
 
 status = 1
 
+bus = SMBus(1)
+
 # --- Hauptprogramm ---
 try:
     while True:
         if status:
-            SMBus(1).write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x00)
+            bus.write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x00)
             print("Relais aus")
         else:
-            SMBus(1).write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x255)
+            bus.write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x255)
             print("Relais ein")
                 
         status ^= 1   
@@ -24,5 +26,6 @@ try:
 except KeyboardInterrupt:
     print("\nBeendet vom Benutzer.")
     # --- Aufräumen ---
-    SMBus(1).write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x00)
-    print("GPIO freigegeben, Script beendet.")
+    bus.write_byte_data(DEVICE_ADDRESS, DEVICE_REG_MODE1, 0x00)
+    bus.close()
+    print("bus freigegeben, Script beendet.")
